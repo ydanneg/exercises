@@ -85,10 +85,10 @@ public class MatrixLayerRotation {
 
     private static List<Point> borderCoordinates(int width, int height, final int padding) {
         List<Point> list = new ArrayList<>();
-        // top
         int lastY = height - padding - 1;
         int lastX = width - padding - 1;
 
+        // top
         for (int i = padding; i < lastY; i++) {
             list.add(new Point(padding, i));
         }
