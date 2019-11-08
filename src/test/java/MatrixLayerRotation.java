@@ -8,12 +8,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import javafx.util.Pair;
 import org.junit.Test;
 
+/**
+ * https://www.hackerrank.com/challenges/matrix-rotation-algo/problem
+ */
 public class MatrixLayerRotation {
-
-    private static final boolean TRACE = Boolean.parseBoolean("true");
 
     @Test
     public void test1() {
@@ -31,7 +31,9 @@ public class MatrixLayerRotation {
         }};
 
         traceMatrix(matrix, "input:");
+
         rotate(matrix, 1);
+
         traceMatrix(matrix, "output:");
         traceMatrix(expected, "expected:");
 
@@ -71,53 +73,49 @@ public class MatrixLayerRotation {
         int m = matrix.size();
         int n = matrix.get(0).size();
         for (int i = 0; i < Math.min(m, n) / 2; i++) {
-            List<Pair<Integer, Integer>> indexes = borderIndexes(m, n, i);
+            List<Point> indexes = borderCoordinates(m, n, i);
             List<Integer> values = indexedValues(matrix, indexes);
             Collections.rotate(values, -offset);
 
             for (int j = 0; j < values.size(); j++) {
-                matrix.get(indexes.get(j).getKey()).set(indexes.get(j).getValue(), values.get(j));
+                matrix.get(indexes.get(j).x).set(indexes.get(j).y, values.get(j));
             }
         }
     }
 
-    private static List<Pair<Integer, Integer>> borderIndexes(int m, int n, final int padding) {
-        List<Pair<Integer, Integer>> list = new ArrayList<>();
+    private static List<Point> borderCoordinates(int width, int height, final int padding) {
+        List<Point> list = new ArrayList<>();
         // top
-        int lastY = n - padding - 1;
-        int lastX = m - padding - 1;
+        int lastY = height - padding - 1;
+        int lastX = width - padding - 1;
 
         for (int i = padding; i < lastY; i++) {
-            list.add(new Pair<>(padding, i));
+            list.add(new Point(padding, i));
         }
         // right
         for (int i = padding; i < lastX; i++) {
-            list.add(new Pair<>(i, lastY));
+            list.add(new Point(i, lastY));
         }
         // bottom
         for (int i = lastY; i > padding; i--) {
-            list.add(new Pair<>(lastX, i));
+            list.add(new Point(lastX, i));
         }
         // left
         for (int i = lastX; i > padding; i--) {
-            list.add(new Pair<>(i, padding));
+            list.add(new Point(i, padding));
         }
         return list;
     }
 
-    private static List<Integer> indexedValues(List<List<Integer>> matrix, List<Pair<Integer, Integer>> indexes) {
+    private static List<Integer> indexedValues(List<List<Integer>> matrix, List<Point> indexes) {
         List<Integer> values = new ArrayList<>(indexes.size());
-        for (Pair<Integer, Integer> index : indexes) {
-            values.add(matrix.get(index.getKey()).get(index.getValue()));
+        for (Point point : indexes) {
+            values.add(matrix.get(point.x).get(point.y));
         }
         return values;
     }
 
     private static void traceMatrix(List<List<Integer>> matrix, String message) {
-        if (!TRACE) {
-            return;
-        }
-
         Optional.ofNullable(message)
                 .ifPresent(System.out::println);
 
@@ -127,6 +125,17 @@ public class MatrixLayerRotation {
                 System.out.print(String.format("%1$3s", String.valueOf(integer)));
             }
             System.out.println();
+        }
+    }
+
+    static class Point {
+
+        Integer x;
+        Integer y;
+
+        Point(Integer x, Integer y) {
+            this.x = x;
+            this.y = y;
         }
     }
 }
