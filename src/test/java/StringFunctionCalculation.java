@@ -18,71 +18,63 @@ public class StringFunctionCalculation {
 
     @Test
     public void test() throws IOException, URISyntaxException {
-        assertThat(calculateMaxValue("aaaaaa"), is(12));
-        assertThat(calculateMaxValue("abcabcddd"), is(9));
-        assertThat(calculateMaxValue(""), is(0));
-        assertThat(calculateMaxValue("a"), is(1));
+        assertCalculateMaxValue("aaaaaa", 12);
+        assertCalculateMaxValue("abcabcddd", 9);
+        assertCalculateMaxValue("", 0);
+        assertCalculateMaxValue("a", 1);
 
         Path path = Paths.get(getClass().getClassLoader()
                                         .getResource("input01.txt").toURI());
         String s = new String(Files.readAllBytes(path)).trim();
-        assertThat(calculateMaxValue(s), is(822043));
+        assertCalculateMaxValue(s, 822043);
     }
 
-    //  method to return count of total distinct substring
-    static int calculateMaxValue(String string) {
-        if (string.length() == 0) {
-            return 0;
-        }
-        SuffixedString txt = new SuffixedString(string);
-        int max = f(txt, 0);
-        for (int i = 1; i < txt.length(); i++) {
-            max = Math.max(max, f(txt, i));
-        }
-        return max;
+    private static void assertCalculateMaxValue(CharSequence input, int expectedMaxValue) {
+        System.out.println("input length: " + input.length());
+        long time = System.currentTimeMillis();
+
+        int result = calculateMaxValue(input);
+
+        System.out.println("result: " + result);
+        System.out.println("time: " + (System.currentTimeMillis() - time) + " ms");
+        System.out.println();
+
+        assertThat(result, is(expectedMaxValue));
     }
 
-    private static int f(SuffixedString suffixed, int pos) {
-        int stringLen = suffixed.length();
-        int suffixIndex = suffixed.suffixes[pos];
-        int suffixLen = stringLen - suffixIndex;
-        int cnt = suffixLen - (pos > 0 ? suffixed.lcp[pos - 1] : 0);
-        int max = 0;
+    static int calculateMaxValue(CharSequence input) {
+        int result = 0;
+        if (input.length() != 0) {
+            int[] suffixArray = suffixArray(input);
+            int[] lcp = lcp(suffixArray, input);
+            for (int i = 0; i < suffixArray.length; i++) {
+                result = Math.max(result, calculateMaxValue(suffixArray, lcp, i));
+            }
+        }
+        return result;
+    }
 
-        for (int j = 0; j < cnt; j++) {
+    static int calculateMaxValue(int[] suffixedArray, int[] lcp, int pos) {
+        int suffixIndex = suffixedArray[pos];
+        int suffixLen = suffixedArray.length - suffixIndex;
+        int uniqueSubs = suffixLen - (pos > 0 ? lcp[pos - 1] : 0);
+        int result = 0;
+
+        for (int j = 0; j < uniqueSubs; j++) {
             int subLen = (suffixIndex + suffixLen - j) - suffixIndex;
-
             int i = pos;
             int occurs = 1;
-            while (i < suffixed.lcp.length && suffixed.lcp[i] >= subLen) {
+            while (i < lcp.length && lcp[i] >= subLen) {
                 occurs++;
                 i++;
             }
-            max = Math.max(max, occurs * subLen);
+            result = Math.max(result, occurs * subLen);
         }
-        return max;
-    }
-
-    static class SuffixedString {
-
-        String string;
-        int[]  suffixes;
-        int[]  lcp;
-
-        private SuffixedString(String string) {
-            this.string = string;
-            this.suffixes = suffixArray(string);
-            this.lcp = lcp(suffixes, string);
-        }
-
-        public int length() {
-            return string.length();
-        }
-
+        return result;
     }
 
     // sort suffixes of input in O(n*log(n))
-    public static int[] suffixArray(CharSequence input) {
+    static int[] suffixArray(CharSequence input) {
         int n = input.length();
         Integer[] order = new Integer[n];
         for (int i = 0; i < n; i++) {
@@ -134,9 +126,8 @@ public class StringFunctionCalculation {
         return sa;
     }
 
-
     // longest common prefixes array in O(n)
-    public static int[] lcp(int[] sa, CharSequence s) {
+    static int[] lcp(int[] sa, CharSequence s) {
         if (sa.length == 0) {
             return new int[0];
         }
