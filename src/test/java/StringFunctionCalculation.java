@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.stream.IntStream;
 
 import org.junit.Test;
 
@@ -43,15 +44,16 @@ public class StringFunctionCalculation {
     }
 
     static int calculateMaxValue(CharSequence input) {
-        int result = 0;
         if (input.length() != 0) {
             int[] suffixArray = suffixArray(input);
             int[] lcp = lcp(suffixArray, input);
-            for (int i = 0; i < suffixArray.length; i++) {
-                result = Math.max(result, calculateMaxValue(suffixArray, lcp, i));
-            }
+            return IntStream.rangeClosed(0, suffixArray.length - 1)
+                            .parallel()
+                            .map(i -> calculateMaxValue(suffixArray, lcp, i))
+                            .reduce(Math::max)
+                            .orElse(0);
         }
-        return result;
+        return 0;
     }
 
     static int calculateMaxValue(int[] suffixedArray, int[] lcp, int pos) {
